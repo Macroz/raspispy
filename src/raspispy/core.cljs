@@ -61,7 +61,7 @@
 
 (defn start-scanning! []
   (println "Starting scanning!")
-  (.on noble "scanStart" on-scan-start)
+  (.on noble "scanStart" (dispatch #'on-scan-start))
   (.startScanning noble (clj->js []) true))
 
 (defn stop-scanning! []
@@ -75,7 +75,7 @@
 
 (defn spy []
   (println "Starting spying...")
-  (.on noble "stateChange" on-state-change))
+  (.on noble "stateChange" (dispatch #'on-state-change)))
 
 (defn -main []
   (spy))
