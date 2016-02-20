@@ -5,18 +5,9 @@
 
 (nodejs/enable-util-print!)
 
-(defn dispatch [f]
-  (fn [& args] (apply f args)))
+;; utility functions
 
-(def known-beacons
-  {"ec00fb52-740a-40f6-aa96-2d4d8120c567" :hsl})
-
-(defn get-state []
-  (keyword (.-state noble)))
-
-(defn ibeacon? [data]
-  (= (.-length data) 25))
-
+(defn dispatch [f] (fn [& args] (apply f args)))
 
 (def hex-chars "0123456789abcdef")
 
@@ -25,6 +16,22 @@
         high (/ (- b low) 16)]
     [(nth hex-chars high)
      (nth hex-chars low)]))
+
+
+
+;; app data
+(def known-beacons
+  {"ec00fb52-740a-40f6-aa96-2d4d8120c567" :hsl})
+
+
+
+;; iBeacon functions
+
+(defn get-state []
+  (keyword (.-state noble)))
+
+(defn ibeacon? [data]
+  (= (.-length data) 25))
 
 (defn parse-uuid [buffer]
   (let [chars (map #(aget buffer %) (range 4 20))
@@ -39,6 +46,9 @@
          (apply concat)
          (apply str))))
 
+
+
+;; event handlers
 
 (defn on-discover [peripheral]
   (let [advertisement (js->clj (.-advertisement peripheral) :keywordize-keys true)
@@ -77,8 +87,11 @@
   (println "Starting spying...")
   (.on noble "stateChange" (dispatch #'on-state-change)))
 
-(defn -main []
-  (spy))
+
+
+;; main
+
+(defn -main [] (spy))
 
 (set! *main-cli-fn* -main)
 
