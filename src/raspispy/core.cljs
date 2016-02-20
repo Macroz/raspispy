@@ -17,7 +17,6 @@
 (defn ibeacon? [data]
   (= (.-length data) 25))
 
-(defn on-rrsi [peripheral])
 
 (def hex-chars "0123456789abcdef")
 
