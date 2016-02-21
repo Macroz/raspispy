@@ -1,7 +1,7 @@
 # raspispy
 ==========
 
-iBeacon spy Raspbery Pi
+iBeacon spy Raspberry Pi, ClojureScript on Node.js
 
 ## Installation
 
