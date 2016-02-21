@@ -46,6 +46,17 @@
          (apply concat)
          (apply str))))
 
+(defn distance [tx-power rssi]
+  (Math/pow 10 (* 0.05 (- tx-power rssi))))
+
+(defn accuracy [tx-power rssi]
+  (if (<= (Math/abs rssi) 0.0001)
+    -1
+    (let [ratio (/ rssi tx-power)]
+      (if (< ratio 1.0)
+        (Math/pow ratio 10)
+        (+ (* 0.89976 (Math/pow ratio 7.7095)) 0.111)))))
+
 
 
 ;; event handlers
@@ -59,8 +70,11 @@
     (when (and manufacturer-data
                (ibeacon? manufacturer-data))
       (let [uuid (parse-uuid manufacturer-data)
-            tx-power (.readInt8 manufacturer-data 24)]
-        (println "Discovered uuid" uuid "tx-power" tx-power "rssi" rssi (name (get known-beacons uuid :unknown)))))))
+            tx-power (.readInt8 manufacturer-data 24)
+            beacon-name (name (get known-beacons uuid :unknown))
+            d (.toFixed (distance tx-power rssi) 2)
+            a (.toFixed (accuracy tx-power rssi) 2)]
+        (println "Discovered uuid" uuid "tx-power" tx-power "rssi" rssi "name" beacon-name d "±" a "m")))))
 
 (defn start-discovery! []
   (println "Starting discovery!")
