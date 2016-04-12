@@ -6,6 +6,8 @@
     "node": "0.12.x"
   },
   "dependencies": {
+    "mqtt": "^1.8.0",
+    "noble": "^1.3.0"
   },
   "devDependencies": {
     "source-map-support": "0.4.0",
