@@ -2,8 +2,16 @@
   (:require [cljs.nodejs :as nodejs]))
 
 (defonce noble (nodejs/require "noble"))
+(defonce mqtt (nodejs/require "mqtt"))
 
 (nodejs/enable-util-print!)
+
+
+
+(def app-state (atom {}))
+
+
+
 
 ;; utility functions
 
@@ -44,6 +52,8 @@
 
 ;; event handlers
 
+(declare publish!)
+
 (defn on-discover [peripheral]
   (let [advertisement (.-advertisement peripheral)
         manufacturer-data (.-manufacturerData advertisement)
@@ -52,7 +62,9 @@
                (ibeacon? manufacturer-data))
       (let [uuid (parse-uuid manufacturer-data)
             tx-power (.readInt8 manufacturer-data 24)]
-        (println "Discovered uuid" uuid "tx-power" tx-power "rssi" rssi)))))
+        ;;(println "Discovered uuid" uuid "tx-power" tx-power "rssi" rssi)
+        (when (:connected? @app-state)
+          (publish! {:uuid uuid :tx-power tx-power :rssi rssi}))))))
 
 (defn start-discovery! []
   (println "Starting discovery!")
@@ -81,9 +93,39 @@
 
 
 
+;; delivery
+
+(defn publish! [msg]
+  (let [client (:client @app-state)]
+    (.publish client "beacon" (pr-str msg))))
+
+(defn on-message [topic msg]
+  (println "Message" (.toString msg)))
+
+(defn on-connect []
+  (println "Connected to MQTT")
+  (swap! app-state assoc :connected? true)
+  (let [client (:client @app-state)]
+    (.subscribe client "beacon")
+    (.on client "message" (dispatch #'on-message))))
+
+(defn on-disconnect []
+  (println "Disconnected from MQTT")
+  (swap! app-state dissoc :connected?))
+
+(defn deliver []
+  (let [client (.connect mqtt "mqtt://localhost:1883")]
+    (swap! app-state assoc :client client)
+    (.on client "connect" (dispatch #'on-connect))
+    (.on client "close" (dispatch #'on-disconnect))))
+
+
+
 ;; main
 
-(defn -main [] (spy))
+(defn -main []
+  (deliver)
+  (spy))
 
 (set! *main-cli-fn* -main)
 
