@@ -12,7 +12,7 @@
 
   :source-paths ["src"]
 
-  :clean-targets ["server.js"
+  :clean-targets ["raspispy.js"
                   "target"]
 
   :cljsbuild {
@@ -21,15 +21,15 @@
               :figwheel true
               :compiler {
                 :main raspispy.core
-                :output-to "target/server_dev/raspispy.js"
-                :output-dir "target/server_dev"
+                :output-to "target/raspispy_dev/raspispy.js"
+                :output-dir "target/raspispy_dev"
                 :target :nodejs
                 :optimizations :none
                 :source-map true}}
              {:id "prod"
               :source-paths ["src"]
               :compiler {
-                :output-to "server.js"
-                :output-dir "target/server_prod"
+                :output-to "target/raspispy_prod/raspispy.js"
+                :output-dir "target/raspispy_prod"
                 :target :nodejs
                 :optimizations :simple}}]})
