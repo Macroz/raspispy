@@ -102,22 +102,39 @@
 (defn on-message [topic msg]
   (println "Message" (.toString msg)))
 
-(defn on-connect []
-  (println "Connected to MQTT")
+(defn handle-connect! []
   (swap! app-state assoc :connected? true)
   (let [client (:client @app-state)]
     (.subscribe client "beacon")
-    (.on client "message" (dispatch #'on-message))))
+    ))
+
+(defn handle-disconnect! []
+  (swap! app-state dissoc :connected?))
+
+(defn on-connect []
+  (println "Connected to MQTT")
+  (handle-connect!))
+
+(defn on-reconnect []
+  (handle-disconnect!)
+  (println "Reconnected to MQTT")
+  (handle-connect!))
 
 (defn on-disconnect []
   (println "Disconnected from MQTT")
-  (swap! app-state dissoc :connected?))
+  (handle-disconnect!))
+
+(defn on-error [& args]
+  (println "Error in MQTT" args))
 
 (defn deliver []
-  (let [client (.connect mqtt "mqtt://localhost:1883")]
+  (let [client (.connect mqtt "ws://locutus.rontu.net:8080/mqtt")]
     (swap! app-state assoc :client client)
+    (.on client "message" (dispatch #'on-message))
     (.on client "connect" (dispatch #'on-connect))
-    (.on client "close" (dispatch #'on-disconnect))))
+    (.on client "reconnect" (dispatch #'on-reconnect))
+    (.on client "close" (dispatch #'on-disconnect))
+    (.on client "error" (dispatch #'on-error))))
 
 
 
